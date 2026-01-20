@@ -15,7 +15,13 @@ const flash = require('connect-flash');
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require('./models/user.js');
+const helmet = require("helmet");
 
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // needed for EJS
+  })
+);
 
 
 const listingRouter = require("./routes/listing.js");
@@ -47,15 +53,17 @@ app.use(express.static(path.join(__dirname,"/public")));
 
 
 const sessionOptions = { 
-    secret : "mysupersecretcode",
-    resave : false,
-    saveUninitialized : true,
-    cookie : {
-        expires : Date.now() +7*24*60*60*1000,
-        maxAge : 7*24*60*60*1000,
-        httpOnly : true
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
     }
-}
+};
+
 
 app.use(session(sessionOptions));
 app.use(flash());
